@@ -69,8 +69,8 @@ def sha256_compress(chunk: bytes, H: list[bytes]) -> bytes:
         w_array.append(word)
 
     for i in range(16, 64):
-        s0 = rotr(w_array[i-15], 7) ^ rotr(w_array[i-15], 18) ^ rotr(w_array[i-15], 3)
-        s1 = rotr(w_array[i-2], 17) ^ rotr(w_array[i-2], 19) ^ rotr(w_array[i-2], 10)
+        s0 = rotr(w_array[i-15], 7) ^ rotr(w_array[i-15], 18) ^ right_shift(w_array[i-15], 3)
+        s1 = rotr(w_array[i-2], 17) ^ rotr(w_array[i-2], 19) ^ right_shift(w_array[i-2], 10)
         new_word = (w_array[i-16] + s0 + w_array[i-7] + s1) & 0xFFFFFFFF
         w_array.append(new_word)
 
