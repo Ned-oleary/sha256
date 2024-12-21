@@ -1,8 +1,5 @@
 from processing import *
 
-
-# need a key and bytes
-
 def eko_hmac(key: bytes, input: bytes) -> bytes:
     BLOCK_SIZE = 64
     if len(key) > BLOCK_SIZE:
