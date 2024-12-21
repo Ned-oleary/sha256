@@ -1,4 +1,4 @@
-from processing import *
+from eko_sha256 import *
 
 def eko_hmac(key: bytes, input: bytes) -> bytes:
     BLOCK_SIZE = 64
