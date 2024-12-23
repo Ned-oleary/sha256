@@ -37,7 +37,8 @@ def append_0_bit(input: bytes) -> bytes:
 def append_64_bit_integer(input: bytes, integer: int) -> bytes:
     return input + integer.to_bytes(8, 'big')
 
-
+# preprocessing
+# SHA256 compression requires a multiple of 512 bits
 def pad_input(input: bytes) -> bytes:
     input_bit_length = length_in_bits(input)
     padded_input = append_1_bit(input) 
@@ -46,7 +47,6 @@ def pad_input(input: bytes) -> bytes:
     padded_input = append_64_bit_integer(padded_input, input_bit_length)
     return padded_input
 
-
 def input_partition(input: bytes) -> list[bytes]:
     chunk_array = []
     for i in range(0, len(input), 64):
@@ -54,26 +54,27 @@ def input_partition(input: bytes) -> list[bytes]:
         chunk_array.append(chunk)
     return chunk_array
 
-
 def right_shift(value: bytes, shifts: int) -> bytes:
     return value >> shifts
-
 
 def left_shift(value: bytes, shifts: int) -> bytes:
         return value << shifts
 
-
 def rotr(value: bytes, shifts: int) -> bytes:
      return right_shift(value, shifts) | left_shift(value, 32 - shifts) & 0xFFFFFFFF
 
-
 def sha256_compress(chunk: bytes, H: list[bytes]) -> bytes:
     word_array = []
+
+    # creates the first 16 words in the array
     for i in range(0, 64, 4): # every 32 bits
         four_bytes = chunk[i:i+4]
         word = int.from_bytes(four_bytes, 'big')
         word_array.append(word)
 
+    # populates the remaining words in the array
+    # note that it manipulates data from the first 16 words
+    # all of these constants are defined in SHA256
     for i in range(16, 64):
         s0 = rotr(word_array[i-15], 7) ^ rotr(word_array[i-15], 18) ^ right_shift(word_array[i-15], 3)
         s1 = rotr(word_array[i-2], 17) ^ rotr(word_array[i-2], 19) ^ right_shift(word_array[i-2], 10)
@@ -82,6 +83,8 @@ def sha256_compress(chunk: bytes, H: list[bytes]) -> bytes:
 
     a,b,c,d,e,f,g,h = H
 
+    # note use of K[i]; each constant gets cycled in through temp1
+    # note that a,b,c,d,e,f,g,h cycle each round, including use of temp1 in a,e 
     for i in range(64):
         S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)
         ch = (e & f) ^ ((~ e) & g)
@@ -110,7 +113,11 @@ def sha256_compress(chunk: bytes, H: list[bytes]) -> bytes:
         (H[7] + h) & 0xFFFFFFFF,
     ]
     
-
+# take input in nytes
+# pad input
+# partition input
+# compress chunks
+# mash the compressed chunks together
 def sha256(input: bytes, H: list[bytes] = H) -> bytes:
     assert isinstance(input, bytes)
     padded_input = pad_input(input)
